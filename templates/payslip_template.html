@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8" />
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			font-size: 12px;
+		}
+
+		.payslip-box {
+			border: 1px solid #ccc;
+			padding: 20px;
+			width: 80%;
+			margin: 20px auto;
+		}
+
+		.header {
+			text-align: center;
+			border-bottom: 1px solid #ccc;
+			padding-bottom: 10px;
+			margin-bottom: 20px;
+		}
+
+		.header h2 {
+			margin: 0;
+		}
+
+		.info-table,
+		.salary-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-bottom: 20px;
+		}
+
+		.info-table td {
+			padding: 5px;
+		}
+
+		.salary-table th,
+		.salary-table td {
+			border: 1px solid #ddd;
+			padding: 8px;
+		}
+
+		.salary-table th {
+			background-color: #f2f2f2;
+		}
+
+		.text-right {
+			text-align: right;
+		}
+
+		.total-row {
+			font-weight: bold;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="payslip-box">
+		<div class="header">
+			<h2 th:text="${payslip.organizationName}">Organization Name</h2>
+			<p>Payslip for the month of <span th:text="${#temporals.format(payslip.payPeriod, 'MMMM yyyy')}">Month
+					Year</span></p>
+		</div>
+
+		<table class="info-table">
+			<tr>
+				<td><b>Employee Name:</b></td>
+				<td th:text="${payslip.employeeName}">John Doe</td>
+				<td><b>Employee Number:</b></td>
+				<td th:text="${payslip.employeeNumber}">EMP001</td>
+			</tr>
+			
+		</table>
+
+		<table class="salary-table">
+			<thead>
+				<tr>
+					<th>Earnings</th>
+					<th class="text-right">Amount</th>
+					<th>Deductions</th>
+					<th class="text-right">Amount</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>Basic Salary</td>
+					<td class="text-right"
+						th:text="${#numbers.formatDecimal(payslip.basicSalary, 1, 'COMMA', 2, 'POINT')}">50,000.00</td>
+					<td>Provident Fund (PF)</td>
+					<td class="text-right" th:text="${#numbers.formatDecimal(payslip.pf, 1, 'COMMA', 2, 'POINT')}">
+						3,000.00</td>
+				</tr>
+				<tr>
+					<td>House Rent Allowance (HRA)</td>
+					<td class="text-right" th:text="${#numbers.formatDecimal(payslip.hra, 1, 'COMMA', 2, 'POINT')}">
+						10,000.00</td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>Dearness Allowance (DA)</td>
+					<td class="text-right" th:text="${#numbers.formatDecimal(payslip.da, 1, 'COMMA', 2, 'POINT')}">
+						5,000.00</td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>Other Allowances</td>
+					<td class="text-right"
+						th:text="${#numbers.formatDecimal(payslip.otherAllowances, 1, 'COMMA', 2, 'POINT')}">2,000.00
+					</td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr class="total-row">
+					<td>Total Earnings</td>
+					<td class="text-right"
+						th:text="${#numbers.formatDecimal(payslip.totalEarnings, 1, 'COMMA', 2, 'POINT')}">67,000.00
+					</td>
+					<td>Total Deductions</td>
+					<td class="text-right"
+						th:text="${#numbers.formatDecimal(payslip.totalDeductions, 1, 'COMMA', 2, 'POINT')}">3,000.00
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<h3 class="text-right total-row">Net Salary: <span
+				th:text="${#numbers.formatDecimal(payslip.netSalary, 1, 'COMMA', 2, 'POINT')}">64,000.00</span></h3>
+	</div>
+</body>
+
+</html>
