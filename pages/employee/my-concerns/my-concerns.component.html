@@ -1,0 +1,109 @@
+<div class="container-fluid pt-4">
+  <!-- Section: Raise a New Concern -->
+  <div class="card mb-4">
+    <div class="card-header">Raise a New Concern</div>
+    <div class="card-body">
+      <form [formGroup]="concernForm" (ngSubmit)="onSubmit()">
+        <div *ngIf="submitError" class="alert alert-danger">{{ submitError }}</div>
+        <div class="mb-3">
+          <label for="description" class="form-label">Describe your concern</label>
+          <textarea id="description" class="form-control" formControlName="description" rows="4" placeholder="Please provide as much detail as possible..."></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="attachmentFile" class="form-label">Attach a file (optional)</label>
+          <input type="file" id="attachmentFile" class="form-control" (change)="onFileSelected($event)">
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || concernForm.invalid">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+          {{ isSubmitting ? 'Submitting...' : 'Submit Concern' }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Section: My Concern History -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      My Concern History
+      <button class="btn btn-sm btn-outline-secondary" (click)="loadConcernHistory()">Refresh</button>
+    </div>
+    <div class="card-body">
+      <div *ngIf="historyError" class="alert alert-danger">{{ historyError }}</div>
+      <div *ngIf="!isLoadingHistory">
+        <!-- UPDATED to use the async pipe -->
+        <div *ngIf="(concerns$ | async) as concerns; else noConcerns">
+          <div *ngIf="concerns.length > 0; else noConcerns" class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th><th>Description</th><th>Status</th><th>Submitted On</th><th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let concern of concerns">
+                  <td>#{{ concern.id }}</td>
+                  <td style="max-width: 400px; white-space: pre-wrap;">{{ concern.description }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'text-bg-primary': concern.status === 'OPEN', 'text-bg-info': concern.status === 'IN_PROGRESS',
+                      'text-bg-success': concern.status === 'RESOLVED', 'text-bg-secondary': concern.status === 'CLOSED'
+                    }">{{ concern.status | titlecase }}</span>
+                  </td>
+                  <td>{{ concern.createdAt | date:'medium' }}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary" (click)="openDetailModal(concern)">View Details</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <ng-template #noConcerns>
+          <p class="text-muted">You have not submitted any concerns yet.</p>
+        </ng-template>
+      </div>
+      <div *ngIf="isLoadingHistory">
+        <p class="text-muted">Loading concern history...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOR VIEWING DETAILS -->
+<div class="modal fade" #concernDetailModal tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content" *ngIf="selectedConcern">
+      <div class="modal-header">
+        <h5 class="modal-title">Details for Concern #{{ selectedConcern.id }}</h5>
+        <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+      </div>
+      <div class="modal-body">
+        <h6>Your Original Concern:</h6>
+        <p class="border p-3 rounded bg-light" style="white-space: pre-wrap;">{{ selectedConcern.description }}</p>
+        <hr>
+        <h6>Response History</h6>
+        <div *ngIf="isLoadingComments" class="text-muted">Loading responses...</div>
+        <div *ngIf="(comments$ | async) as comments">
+          <div *ngIf="comments.length > 0; else noResponses">
+            <div *ngFor="let comment of comments" class="mb-3">
+              <div class="card">
+                <div class="card-body">
+                  <p class="card-text" style="white-space: pre-wrap;">{{ comment.description }}</p>
+                </div>
+                <div class="card-footer text-muted small">
+                  From: {{ comment.employeeName }} on {{ comment.createdAt | date:'medium' }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noResponses>
+            <p class="text-muted">There are no responses from your organization yet.</p>
+          </ng-template>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

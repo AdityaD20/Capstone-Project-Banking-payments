@@ -1,0 +1,32 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Upload Verification Documents</h5>
+    <p class="card-text text-muted">Please upload all four of the required documents to complete your profile. Only PDF and JPG files are accepted.</p>
+
+    <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+    <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+    <div *ngFor="let slot of documentSlots" class="mb-3 border p-3 rounded">
+      <label [for]="slot.key" class="form-label"><strong>{{ slot.label }}</strong></label>
+      <div class="input-group">
+        <input 
+          type="file" 
+          class="form-control" 
+          [id]="slot.key" 
+          (change)="onFileSelected($event, slot)"
+          accept="application/pdf,image/jpeg,image/jpg"
+        >
+      </div>
+      <div *ngIf="slot.file" class="form-text text-success mt-1">
+        Selected: {{ slot.file.name }}
+      </div>
+    </div>
+    
+    <hr>
+
+    <button class="btn btn-primary w-100" [disabled]="!allFilesSelected || isLoading || successMessage" (click)="onUpload()">
+      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+      {{ isLoading ? 'Uploading...' : 'Submit All Documents' }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,39 @@
+<div class="container-fluid vh-100 d-flex justify-content-center align-items-center bg-light">
+  <div class="auth-card">
+    <!-- Tab Navigation -->
+    <ul class="nav nav-pills nav-fill mb-4">
+      <li class="nav-item">
+        <a
+          class="nav-link"
+          [class.active]="activeTab === 'login'"
+          (click)="activeTab = 'login'"
+          href="javascript:void(0)"
+          >Login</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link"
+          [class.active]="activeTab === 'register'"
+          (click)="activeTab = 'register'"
+          href="javascript:void(0)"
+          >Register</a
+        >
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div>
+      <div *ngIf="activeTab === 'login'">
+        <app-org-login-form></app-org-login-form>
+      </div>
+      <div *ngIf="activeTab === 'register'">
+        <app-org-register-form></app-org-register-form>
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+      <a routerLink="/" class="text-secondary small">Back to Home</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,120 @@
+<div class="container-fluid pt-4">
+  <h3 class="mb-4">Pending Organization Approvals</h3>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">Pending Initial Approvals</div>
+        <div class="card-body">
+          <div *ngIf="!isLoading">
+            <div *ngIf="(pendingInitialOrgs$ | async) as orgs; else noRequestsTpl">
+              <div *ngIf="orgs.length > 0; else noRequestsTpl" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                  <thead class="table-light">
+                    <tr><th>Org Name</th><th>Email</th><th class="text-center">Actions</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let org of orgs">
+                      <td>{{ org.name }}</td>
+                      <td>{{ org.email }}</td>
+                      <td class="text-center">
+                        <button class="btn btn-success btn-sm me-2" (click)="approveInitial(org)">Approve</button>
+                        <button class="btn btn-danger btn-sm" (click)="rejectInitial(org)">Reject</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="isLoading"><p class="text-muted p-2">Loading...</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header bg-info text-white">Pending Final Approval (Documents Submitted)</div>
+        <div class="card-body">
+          <div *ngIf="!isLoading">
+            <div *ngIf="(pendingFinalOrgs$ | async) as orgs; else noRequestsTpl">
+              <div *ngIf="orgs.length > 0; else noRequestsTpl" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                  <thead class="table-light">
+                    <tr><th>Org Name</th><th>Email</th><th class="text-center">Actions</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let org of orgs">
+                      <td>{{ org.name }}</td>
+                      <td>{{ org.email }}</td>
+                      <td class="text-center">
+                        <button class="btn btn-primary btn-sm" (click)="openReviewModal(org)">Review Docs</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="isLoading"><p class="text-muted p-2">Loading...</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #noRequestsTpl><div class="p-2 text-muted">No pending requests.</div></ng-template>
+
+<!-- Modal for Document Review -->
+<div class="modal fade" #reviewModal id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" *ngIf="selectedOrg">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reviewModalLabel">Review: {{ selectedOrg.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h6>Submitted Documents</h6>
+        <div *ngIf="isLoadingDocuments" class="text-muted">Loading documents...</div>
+        <ul *ngIf="!isLoadingDocuments && orgDocuments.length > 0" class="list-group list-group-flush mb-4">
+          <li *ngFor="let doc of orgDocuments" class="list-group-item d-flex justify-content-between align-items-center">
+            {{ doc.displayName | docName }}
+            <a [href]="doc.url" target="_blank" class="btn btn-outline-secondary btn-sm">View Document</a>
+          </li>
+        </ul>
+        <div *ngIf="!isLoadingDocuments && orgDocuments.length === 0" class="alert alert-warning">
+          No documents found for this organization.
+        </div>
+        <hr />
+        <h6>Final Approval & Activation</h6>
+        <p class="text-muted small">To activate this organization, please provide their initial bank account details.</p>
+        <form [formGroup]="approvalForm" (ngSubmit)="submitFinalApproval()">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Account Number</label><input type="text" class="form-control" formControlName="accountNumber" /></div>
+            <div class="col-md-6"><label class="form-label">IFSC Code</label><input type="text" class="form-control" formControlName="ifscCode" /></div>
+            <div class="col-md-6"><label class="form-label">Bank Name</label><input type="text" class="form-control" formControlName="bankName" /></div>
+            <div class="col-md-6"><label class="form-label">Initial Balance</label><input type="number" class="form-control" formControlName="initialBalance" /></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-auto" (click)="submitDocumentRejection()" [disabled]="isSubmitting">Reject Documents</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" (click)="submitFinalApproval()" [disabled]="isSubmitting || approvalForm.invalid">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+          Approve & Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" [class.show]="isRejectionModalVisible" [style.display]="isRejectionModalVisible ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <app-rejection-dialog [title]="rejectionTitle" [prompt]="rejectionPrompt" (close)="closeRejectionModal()" (submitReason)="onRejectionSubmit($event)"></app-rejection-dialog>
+    </div>
+  </div>
+</div>
+<div *ngIf="isRejectionModalVisible" class="modal-backdrop fade show"></div>

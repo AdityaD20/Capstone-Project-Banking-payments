@@ -1,0 +1,52 @@
+<div class="card">
+  <div class="card-header">
+    My Payslip History
+  </div>
+  <div class="card-body">
+    <div *ngIf="actionError" class="alert alert-danger">{{ actionError }}</div>
+    <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+    <div *ngIf="(payslips$ | async) as payslips; else loading">
+      <div *ngIf="payslips.length > 0; else noPayslips" class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Pay Period</th>
+              <th class="text-end">Net Salary</th>
+              <th>Generated On</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let payslip of payslips">
+              <td><strong>{{ payslip.payPeriod }}</strong></td>
+              <td class="text-end">{{ payslip.netSalary | number:'1.2-2' }}</td>
+              <td>{{ payslip.createdAt | date:'mediumDate' }}</td>
+              <td class="text-end">
+                <!-- Bootstrap Button Group -->
+                <div class="btn-group" role="group">
+                  <!-- VIEW Button -->
+                  <button class="btn btn-sm btn-outline-secondary" (click)="viewPdfInNewTab(payslip)" [disabled]="processingAction?.id === payslip.id">
+                    <span *ngIf="processingAction?.id === payslip.id && processingAction?.type === 'view'" class="spinner-border spinner-border-sm"></span>
+                    <span *ngIf="processingAction?.id !== payslip.id || processingAction?.type !== 'view'">View</span>
+                  </button>
+                  <!-- DOWNLOAD Button -->
+                  <button class="btn btn-sm btn-primary" (click)="downloadPdf(payslip)" [disabled]="processingAction?.id === payslip.id">
+                    <span *ngIf="processingAction?.id === payslip.id && processingAction?.type === 'download'" class="spinner-border spinner-border-sm"></span>
+                    <span *ngIf="processingAction?.id !== payslip.id || processingAction?.type !== 'download'">Download</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noPayslips>
+        <p class="text-muted">No payslips have been generated for your account yet.</p>
+      </ng-template>
+    </div>
+    <ng-template #loading>
+      <p class="text-muted">Loading payslip history...</p>
+    </ng-template>
+  </div>
+</div>

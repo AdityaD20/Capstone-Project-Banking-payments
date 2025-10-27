@@ -1,0 +1,74 @@
+<div class="container-fluid pt-4">
+  <h3 class="mb-4">Pending Deposit Requests</h3>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div class="card">
+    <div class="card-header bg-info text-white">Action Required: Pending Deposit Approvals</div>
+    <div class="card-body">
+      <div *ngIf="!isLoading">
+        <div *ngIf="(pendingDepositRequests$ | async) as requests; else noRequestsTpl">
+          <div *ngIf="requests.length > 0; else noRequestsTpl" class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr class="table-light">
+                  <th>Organization</th><th>Description</th><th class="text-end">Amount</th><th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let req of requests">
+                  <td><strong>{{ req.organizationName }}</strong></td>
+                  <td><small class="text-muted">{{ req.description }}</small></td>
+                  <td class="text-end">{{ req.amount | currency:'INR' }}</td>
+                  <td class="text-center">
+                    <button class="btn btn-info btn-sm" (click)="openDepositReviewModal(req)">Review</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="isLoading"><p class="text-muted p-2">Loading...</p></div>
+    </div>
+  </div>
+</div>
+
+<ng-template #noRequestsTpl><div class="p-2 text-muted">No pending requests.</div></ng-template>
+
+<!-- Deposit Review Modal -->
+<div class="modal fade" #depositReviewModal id="depositReviewModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" *ngIf="selectedDeposit">
+      <div class="modal-header">
+        <h5 class="modal-title">Review Deposit: {{ selectedDeposit.organizationName }}</h5>
+        <button type="button" class="btn-close" (click)="closeDepositModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Amount:</strong> {{ selectedDeposit.amount | currency:'INR' }}</p>
+        <p><strong>Description:</strong> {{ selectedDeposit.description }}</p>
+        <hr>
+        <h6>Proof of Deposit Document</h6>
+        <div *ngIf="isLoadingDepositDoc" class="text-muted">Loading document...</div>
+        <div *ngIf="(depositDocument$ | async) as documents">
+          <a *ngIf="documents.length > 0" [href]="documents[0].url" target="_blank" class="btn btn-outline-primary">View Document</a>
+          <p *ngIf="documents.length === 0" class="text-danger">No document found for this request.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-auto" (click)="rejectDeposit(selectedDeposit)">Reject</button>
+        <button type="button" class="btn btn-secondary" (click)="closeDepositModal()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="approveDeposit(selectedDeposit)">Approve Deposit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" [class.show]="isRejectionModalVisible" [style.display]="isRejectionModalVisible ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <app-rejection-dialog [title]="rejectionTitle" [prompt]="rejectionPrompt" (close)="closeRejectionModal()" (submitReason)="onRejectionSubmit($event)"></app-rejection-dialog>
+    </div>
+  </div>
+</div>
+<div *ngIf="isRejectionModalVisible" class="modal-backdrop fade show"></div>

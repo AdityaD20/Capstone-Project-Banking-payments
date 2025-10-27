@@ -1,0 +1,153 @@
+<div class="d-flex vh-100">
+  <!-- Sidebar -->
+  <nav class="sidebar bg-dark text-white p-3">
+    <h4 class="text-center mb-4">Payroll System</h4>
+    <ul class="nav nav-pills flex-column">
+      <!-- Admin Links -->
+      <li class="nav-item" *ngIf="userHasRole('ROLE_BANK_ADMIN')">
+        <a class="nav-link text-white" routerLink="/admin/dashboard" routerLinkActive="active"
+          >Dashboard</a
+        >
+      </li>
+      <li class="nav-item" *ngIf="userHasRole('ROLE_BANK_ADMIN')">
+        <a
+          class="nav-link text-white"
+          routerLink="/admin/pending-approvals"
+          routerLinkActive="active"
+        >
+          Pending Approvals
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="userHasRole('ROLE_BANK_ADMIN')">
+        <a
+          class="nav-link text-white"
+          routerLink="/admin/payment-requests"
+          routerLinkActive="active"
+        >
+          Payment Requests
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="userHasRole('ROLE_BANK_ADMIN')">
+        <a
+          class="nav-link text-white"
+          routerLink="/admin/deposit-requests"
+          routerLinkActive="active"
+        >
+          Deposit Requests
+        </a>
+      </li>
+
+      <!-- <li class="nav-item" *ngIf="userHasRole('ROLE_BANK_ADMIN')">
+        <a class="nav-link text-white" routerLink="/admin/organizations" routerLinkActive="active">
+          Organizations
+        </a>
+      </li> -->
+
+      <!-- Organization Links -->
+      <li class="nav-item" *ngIf="userHasRole('ROLE_ORGANIZATION')">
+        <a
+          class="nav-link text-white"
+          routerLink="/organization/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >Dashboard</a
+        >
+      </li>
+
+      <!-- Links are now controlled by subscribing to the organization$ observable -->
+      <ng-container *ngIf="organization$ | async as organization">
+        <ng-container *ngIf="!isLoadingOrgStatus && organization?.status === 'ACTIVE'">
+          <li class="nav-item">
+            <a
+              class="nav-link text-white"
+              routerLink="/organization/employees"
+              routerLinkActive="active"
+              >Employee Management</a
+            >
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link text-white"
+              routerLink="/organization/payroll"
+              routerLinkActive="active"
+              >Run Payroll</a
+            >
+          </li>
+
+          <li class="nav-item">
+            <a
+              class="nav-link text-white"
+              routerLink="/organization/vendors"
+              routerLinkActive="active"
+              >Manage Vendors</a
+            >
+          </li>
+
+          <li class="nav-item">
+            <a
+              class="nav-link text-white"
+              routerLink="/organization/create-payment"
+              routerLinkActive="active"
+              >Vendor Payment</a
+            >
+          </li>
+
+          <li class="nav-item">
+            <a
+              class="nav-link text-white"
+              routerLink="/organization/concerns"
+              routerLinkActive="active"
+              >Manage Concerns</a
+            >
+          </li>
+
+          <li class="nav-item">
+            <a
+              class="nav-link text-white"
+              routerLink="/organization/deposits"
+              routerLinkActive="active"
+              >Deposits</a
+            >
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link text-white"
+              routerLink="/organization/reports"
+              routerLinkActive="active"
+              >Reports</a
+            >
+          </li>
+        </ng-container>
+      </ng-container>
+
+      <!-- Employee Links -->
+      <li class="nav-item" *ngIf="userHasRole('ROLE_EMPLOYEE')">
+        <a
+          class="nav-link text-white"
+          routerLink="/employee/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >My Dashboard</a
+        >
+      </li>
+      <li class="nav-item" *ngIf="userHasRole('ROLE_EMPLOYEE')">
+        <a class="nav-link text-white" routerLink="/employee/my-concerns" routerLinkActive="active"
+          >My Concerns</a
+        >
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content flex-grow-1 d-flex flex-column">
+    <!-- Topbar -->
+    <header class="topbar bg-white shadow-sm p-3 d-flex justify-content-end align-items-center">
+      <div *ngIf="authService.currentUserValue as user">
+        <span>{{ user.email }}</span>
+        <button class="btn btn-outline-secondary ms-3 btn-sm" (click)="logout()">Logout</button>
+      </div>
+    </header>
+    <!-- Page Content -->
+    <main class="content-area p-4 flex-grow-1"><router-outlet></router-outlet></main>
+  </div>
+</div>

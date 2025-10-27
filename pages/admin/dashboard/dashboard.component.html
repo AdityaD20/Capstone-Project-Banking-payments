@@ -1,0 +1,279 @@
+<div class="container-fluid pt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Admin Dashboard</h3>
+    <button class="btn btn-sm btn-outline-secondary" (click)="loadAllData()">Refresh All</button>
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <!-- SUMMARY CARDS ROW -->
+  <div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Vendor Payments</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ vendorRequestCount }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Pending Payrolls</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ payrollRequestCount }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Initial Approvals</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ initialApprovalCount }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Final Approvals</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ finalApprovalCount }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PENDING DEPOSIT APPROVALS -->
+  <div class="card mb-4">
+    <div class="card-header bg-info text-white">Action Required: Pending Deposit Approvals</div>
+    <div class="card-body">
+      <div *ngIf="(pendingDepositRequests$ | async) as requests; else loadingTpl">
+        <div *ngIf="requests.length > 0; else noRequestsTpl" class="table-responsive">
+          <table class="table table-hover align-middle">
+            <tbody>
+              <tr *ngFor="let req of requests">
+                <td><strong>{{ req.organizationName }}</strong><br /><small class="text-muted">{{ req.description }}</small></td>
+                <td class="text-end">{{ req.amount | currency:'INR' }}</td>
+                <td class="text-end">
+                  <button class="btn btn-info btn-sm" (click)="openDepositReviewModal(req)">Review</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW FOR ACTIONABLE PAYMENT ITEMS -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header bg-warning">Action Required: Pending Vendor Payments</div>
+        <div class="card-body">
+          <div *ngIf="(pendingVendorRequests$ | async) as requests; else loadingTpl">
+            <div *ngIf="requests.length > 0; else noRequestsTpl" class="table-responsive">
+              <table class="table table-hover align-middle">
+                <tbody>
+                  <tr *ngFor="let req of requests">
+                    <td><strong>{{ req.organizationName }}</strong><br /><small class="text-muted">{{ req.description }}</small></td>
+                    <td class="text-end">{{ req.amount | currency:'INR' }}</td>
+                    <td class="text-end">
+                      <button class="btn btn-success btn-sm me-2" (click)="approvePayment(req)">Approve</button>
+                      <button class="btn btn-danger btn-sm" (click)="rejectPayment(req)">Reject</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header bg-success text-white">Action Required: Pending Payroll Approvals</div>
+        <div class="card-body">
+          <div *ngIf="(pendingSalaryRequests$ | async) as requests; else loadingTpl">
+            <div *ngIf="requests.length > 0; else noRequestsTpl" class="table-responsive">
+              <table class="table table-hover align-middle">
+                <tbody>
+                  <tr *ngFor="let req of requests">
+                    <td><strong>{{ req.organizationName }}</strong><br /><small class="text-muted">{{ req.description }}</small></td>
+                    <td class="text-end">{{ req.amount | currency:'INR' }}</td>
+                    <td class="text-end">
+                      <button class="btn btn-success btn-sm me-2" (click)="approvePayment(req)">Approve</button>
+                      <button class="btn btn-danger btn-sm" (click)="rejectPayment(req)">Reject</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW FOR ONBOARDING ITEMS -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">Pending Initial Approvals</div>
+        <div class="card-body">
+          <div *ngIf="(pendingInitialOrgs$ | async) as orgs; else loadingTpl">
+            <div *ngIf="orgs.length > 0; else noRequestsTpl" class="table-responsive">
+              <table class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                  <tr><th>Org Name</th><th>Email</th><th class="text-center">Actions</th></tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let org of orgs">
+                    <td>{{ org.name }}</td>
+                    <td>{{ org.email }}</td>
+                    <td class="text-center">
+                      <button class="btn btn-success btn-sm me-2" (click)="approveInitial(org)">Approve</button>
+                      <button class="btn btn-danger btn-sm" (click)="rejectInitial(org)">Reject</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">Pending Final Approval (Documents Submitted)</div>
+        <div class="card-body">
+          <div *ngIf="(pendingFinalOrgs$ | async) as orgs; else loadingTpl">
+            <div *ngIf="orgs.length > 0; else noRequestsTpl" class="table-responsive">
+              <table class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                  <tr><th>Org Name</th><th>Email</th><th class="text-center">Actions</th></tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let org of orgs">
+                    <td>{{ org.name }}</td>
+                    <td>{{ org.email }}</td>
+                    <td class="text-center">
+                      <button class="btn btn-primary btn-sm" (click)="openReviewModal(org)">Review Documents</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reusable Templates -->
+  <ng-template #loadingTpl>
+    <div class="d-flex align-items-center text-muted p-2">
+      <div class="spinner-border spinner-border-sm me-2"></div>
+      <span>Loading...</span>
+    </div>
+  </ng-template>
+  <ng-template #noRequestsTpl>
+    <div class="p-2 text-muted">No pending requests.</div>
+  </ng-template>
+</div>
+
+<!-- Modal for Document Review -->
+<div class="modal fade" #reviewModal id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" *ngIf="selectedOrg">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reviewModalLabel">Review: {{ selectedOrg.name }}</h5>
+        <button type="button" class="btn-close" (click)="closeReviewModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h6>Submitted Documents</h6>
+        <div *ngIf="isLoadingDocuments" class="text-muted">Loading documents...</div>
+        <ul *ngIf="!isLoadingDocuments && orgDocuments.length > 0" class="list-group list-group-flush mb-4">
+          <li *ngFor="let doc of orgDocuments" class="list-group-item d-flex justify-content-between align-items-center">
+            {{ doc.displayName | docName }}
+            <a [href]="doc.url" target="_blank" class="btn btn-outline-secondary btn-sm">View Document</a>
+          </li>
+        </ul>
+        <div *ngIf="!isLoadingDocuments && orgDocuments.length === 0" class="alert alert-warning">
+          No documents found for this organization.
+        </div>
+        <hr />
+        <h6>Final Approval & Activation</h6>
+        <p class="text-muted small">To activate this organization, please provide their initial bank account details.</p>
+        <form [formGroup]="approvalForm" (ngSubmit)="submitFinalApproval()">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Account Number</label><input type="text" class="form-control" formControlName="accountNumber" /></div>
+            <div class="col-md-6"><label class="form-label">IFSC Code</label><input type="text" class="form-control" formControlName="ifscCode" /></div>
+            <div class="col-md-6"><label class="form-label">Bank Name</label><input type="text" class="form-control" formControlName="bankName" /></div>
+            <div class="col-md-6"><label class="form-label">Initial Balance</label><input type="number" class="form-control" formControlName="initialBalance" /></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-auto" (click)="submitDocumentRejection()" [disabled]="isSubmitting">Reject Documents</button>
+        <button type="button" class="btn btn-secondary" (click)="closeReviewModal()">Close</button>
+        <button type="button" class="btn btn-success" (click)="submitFinalApproval()" [disabled]="isSubmitting || approvalForm.invalid">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+          Approve & Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Deposit Review -->
+<div class="modal fade" #depositReviewModal id="depositReviewModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" *ngIf="selectedDeposit">
+      <div class="modal-header">
+        <h5 class="modal-title">Review Deposit: {{ selectedDeposit.organizationName }}</h5>
+        <button type="button" class="btn-close" (click)="closeDepositModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Amount:</strong> {{ selectedDeposit.amount | currency:'INR' }}</p>
+        <p><strong>Description:</strong> {{ selectedDeposit.description }}</p>
+        <hr>
+        <h6>Proof of Deposit Document</h6>
+        <div *ngIf="isLoadingDepositDoc" class="text-muted">Loading document...</div>
+        <div *ngIf="(depositDocument$ | async) as documents">
+          <a *ngIf="documents.length > 0" [href]="documents[0].url" target="_blank" class="btn btn-outline-primary">View Document</a>
+          <p *ngIf="documents.length === 0" class="text-danger">No document found for this request.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-auto" (click)="rejectDeposit(selectedDeposit)">Reject</button>
+        <button type="button" class="btn btn-secondary" (click)="closeDepositModal()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="approveDeposit(selectedDeposit)">Approve Deposit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" [class.show]="isRejectionModalVisible" [style.display]="isRejectionModalVisible ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <app-rejection-dialog [title]="rejectionTitle" [prompt]="rejectionPrompt" (close)="closeRejectionModal()" (submitReason)="onRejectionSubmit($event)"></app-rejection-dialog>
+    </div>
+  </div>
+</div>
+<div *ngIf="isRejectionModalVisible" class="modal-backdrop fade show"></div>

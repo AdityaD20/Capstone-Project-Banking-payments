@@ -1,0 +1,82 @@
+<div class="container-fluid pt-4">
+  <h3 class="mb-4">Request a Deposit</h3>
+
+  <div class="row">
+    <!-- Left Column: Form -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">New Deposit Request</div>
+        <div class="card-body">
+          <form [formGroup]="depositForm" (ngSubmit)="onSubmit()">
+            <div *ngIf="submitError" class="alert alert-danger">{{ submitError }}</div>
+            <div class="mb-3">
+              <label for="amount" class="form-label">Deposit Amount</label>
+              <div class="input-group"><span class="input-group-text">₹</span><input type="number" id="amount" class="form-control" formControlName="amount" placeholder="0.00"></div>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description (e.g., Bank Transfer Reference)</label>
+              <input type="text" id="description" class="form-control" formControlName="description">
+            </div>
+            <div class="mb-3">
+              <label for="depositFile" class="form-label">Proof of Deposit (Cheque Only)</label>
+              <input type="file" id="depositFile" class="form-control" (change)="onFileSelected($event)" required>
+              <div class="form-text">Please upload a receipt or screenshot of your bank transfer.</div>
+            </div>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+              {{ isSubmitting ? 'Submitting...' : 'Submit Deposit Request' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: History -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          Deposit History
+          <button class="btn btn-sm btn-outline-secondary" (click)="loadHistory()">Refresh</button>
+        </div>
+        <div class="card-body">
+          <div *ngIf="historyError" class="alert alert-danger">{{ historyError }}</div>
+          
+          <div *ngIf="!isLoadingHistory">
+            <!-- UPDATED SECTION: Uses async pipe on the history$ observable -->
+            <div *ngIf="(history$ | async) as history; else noHistory">
+              <div *ngIf="history.length > 0; else noHistory" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                  <thead class="table-light">
+                    <tr><th>Date</th><th>Amount</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of history">
+                      <td>{{ item.createdAt | date:'short' }}</td>
+                      <td>{{ item.amount | currency:'INR' }}</td>
+                      <td>
+                        <span class="badge" [ngClass]="{
+                          'text-bg-success': item.status === 'APPROVED',
+                          'text-bg-warning': item.status === 'PENDING',
+                          'text-bg-danger': item.status === 'REJECTED'
+                        }">{{ item.status | titlecase }}</span>
+                        <div *ngIf="item.status === 'REJECTED' && item.rejectionReason" class="text-danger small mt-1" style="font-size: 0.8em;">
+                          Reason: {{ item.rejectionReason }}
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <ng-template #noHistory><p class="text-muted">No deposit requests have been made yet.</p></ng-template>
+          </div>
+          
+          <div *ngIf="isLoadingHistory" class="text-center">
+            <div class="spinner-border spinner-border-sm"></div>
+            <p class="text-muted mt-2">Loading history...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

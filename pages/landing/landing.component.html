@@ -1,0 +1,37 @@
+<div class="container-fluid vh-100 d-flex flex-column justify-content-center align-items-center bg-light">
+  <div class="text-center mb-5">
+    <h1 class="display-4 fw-light">Our Systems</h1>
+  </div>
+  <div class="row justify-content-center g-4 w-100" style="max-width: 1200px;">
+    <!-- Organization Card -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card h-100 shadow-sm system-card" (click)="navigateTo('/organization/auth')">
+        <div class="card-body text-center p-4">
+          <h5 class="card-title">Organization</h5>
+          <p class="card-text text-muted">For Payroll & Payments</p>
+          <p class="card-text small mt-3">Log in or register to manage your company's financial operations.</p>
+        </div>
+      </div>
+    </div>
+    <!-- Bank Admin Card -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card h-100 shadow-sm system-card" (click)="navigateTo('/admin/login')">
+        <div class="card-body text-center p-4">
+          <h5 class="card-title">Bank Admin</h5>
+          <p class="card-text text-muted">For Internal Management</p>
+          <p class="card-text small mt-3">Access the administrative dashboard to manage client organizations.</p>
+        </div>
+      </div>
+    </div>
+    <!-- Employee Card -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card h-100 shadow-sm system-card" (click)="navigateTo('/employee/login')">
+        <div class="card-body text-center p-4">
+          <h5 class="card-title">Employee</h5>
+          <p class="card-text text-muted">For Self-Service</p>
+          <p class="card-text small mt-3">Access your payslips, manage your documents, and raise concerns.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

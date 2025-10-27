@@ -1,0 +1,71 @@
+<div class="container-fluid pt-4">
+  <h3 class="mb-4">Pending Payment Requests</h3>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header bg-success text-white">Pending Payroll Approvals</div>
+        <div class="card-body">
+          <div *ngIf="!isLoading">
+            <div *ngIf="(pendingSalaryRequests$ | async) as requests; else noRequestsTpl">
+              <div *ngIf="requests.length > 0; else noRequestsTpl" class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <tbody>
+                    <tr *ngFor="let req of requests">
+                      <td><strong>{{ req.organizationName }}</strong><br /><small class="text-muted">{{ req.description }}</small></td>
+                      <td class="text-end">{{ req.amount | currency:'INR' }}</td>
+                      <td class="text-end">
+                        <button class="btn btn-success btn-sm me-2" (click)="approvePayment(req)">Approve</button>
+                        <button class="btn btn-danger btn-sm" (click)="rejectPayment(req)">Reject</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="isLoading"><p class="text-muted p-2">Loading...</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header bg-warning">Pending Vendor Payments</div>
+        <div class="card-body">
+          <div *ngIf="!isLoading">
+            <div *ngIf="(pendingVendorRequests$ | async) as requests; else noRequestsTpl">
+              <div *ngIf="requests.length > 0; else noRequestsTpl" class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <tbody>
+                    <tr *ngFor="let req of requests">
+                      <td><strong>{{ req.organizationName }}</strong><br /><small class="text-muted">{{ req.description }}</small></td>
+                      <td class="text-end">{{ req.amount | currency:'INR' }}</td>
+                      <td class="text-end">
+                        <button class="btn btn-success btn-sm me-2" (click)="approvePayment(req)">Approve</button>
+                        <button class="btn btn-danger btn-sm" (click)="rejectPayment(req)">Reject</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="isLoading"><p class="text-muted p-2">Loading...</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #noRequestsTpl><div class="p-2 text-muted">No pending requests.</div></ng-template>
+
+<!-- Rejection Modal -->
+<div class="modal fade" [class.show]="isRejectionModalVisible" [style.display]="isRejectionModalVisible ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <app-rejection-dialog [title]="rejectionTitle" [prompt]="rejectionPrompt" (close)="closeRejectionModal()" (submitReason)="onRejectionSubmit($event)"></app-rejection-dialog>
+    </div>
+  </div>
+</div>
+<div *ngIf="isRejectionModalVisible" class="modal-backdrop fade show"></div>

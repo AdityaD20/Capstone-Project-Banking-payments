@@ -1,0 +1,43 @@
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div class="mb-3">
+    <label for="loginEmail" class="form-label">Email address</label>
+    <input type="email" id="loginEmail" class="form-control" formControlName="email"
+      [ngClass]="{ 'is-invalid': f['email'].touched && f['email'].errors }">
+    <div *ngIf="f['email'].touched && f['email'].errors" class="invalid-feedback">
+      <div *ngIf="f['email'].errors['required']">Email is required.</div>
+      <div *ngIf="f['email'].errors['email']">Please enter a valid email address.</div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="loginPassword" class="form-label">Password</label>
+    <input type="password" id="loginPassword" class="form-control" formControlName="password"
+      [ngClass]="{ 'is-invalid': f['password'].touched && f['password'].errors }">
+    <div *ngIf="f['password'].touched && f['password'].errors" class="invalid-feedback">
+      <div *ngIf="f['password'].errors['required']">Password is required.</div>
+    </div>
+  </div>
+  
+  <div class="text-end mb-3">
+    <a routerLink="/forgot-password" class="text-secondary small">Forgot Password?</a>
+  </div>
+
+  <div class="mb-3 d-flex justify-content-center">
+    <ngx-recaptcha2 
+      #captchaElem 
+      [siteKey]="siteKey" 
+      formControlName="captchaResponse">
+    </ngx-recaptcha2>
+  </div>
+
+  <div class="d-grid">
+    <button type="submit" class="btn btn-primary" [disabled]="isLoading || loginForm.invalid">
+      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      {{ isLoading ? 'Logging In...' : 'Login' }}
+    </button>
+  </div>
+</form>

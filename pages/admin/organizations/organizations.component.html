@@ -1,0 +1,70 @@
+<div class="container-fluid pt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Manage Organizations</h3>
+    <div class="d-flex align-items-center gap-3">
+      <div>
+        <label for="statusFilter" class="form-label-sm me-2">Filter by Status:</label>
+        <select id="statusFilter" class="form-select form-select-sm" [(ngModel)]="filterStatus" (change)="onFilterChange()">
+          <option value="">All (Non-Disabled)</option>
+          <option value="ACTIVE">Active</option>
+          <option value="DISABLED">Disabled</option>
+          <option value="PENDING_INITIAL_APPROVAL">Pending Initial Approval</option>
+          <option value="WAITING_FOR_DOCUMENTS">Waiting For Documents</option>
+          <option value="PENDING_FINAL_APPROVAL">Pending Final Approval</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" (click)="loadOrganizations()">Refresh</button>
+    </div>
+  </div>
+  <hr>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div class="card">
+    <div class="card-body">
+      <!-- Show loading spinner when isLoading is true -->
+      <div *ngIf="isLoading" class="text-center p-4">
+        <div class="spinner-border"></div>
+        <p class="mt-2">Loading organizations...</p>
+      </div>
+
+      <!-- Show the table only when not loading -->
+      <div *ngIf="!isLoading">
+        <div *ngIf="(organizations$ | async) as orgs; else noOrgs">
+          <div *ngIf="orgs.length > 0; else noOrgs" class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Name</th>
+                  <th>Contact Email</th>
+                  <th>Balance</th>
+                  <th>Status</th>
+                  <th>Registered On</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let org of orgs">
+                  <td>{{ org.name }}</td>
+                  <td>{{ org.email }}</td>
+                  <td>{{ org.balance | currency:'INR' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="getStatusClass(org.status)">{{ org.status | titlecase }}</span>
+                  </td>
+                  <td>{{ org.createdAt | date:'mediumDate' }}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-danger" *ngIf="org.status !== 'DISABLED'" (click)="disableOrganization(org)">
+                      Disable
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <ng-template #noOrgs><p class="text-muted p-3">No organizations found matching the filter.</p></ng-template>
+      </div>
+    </div>
+  </div>
+</div>

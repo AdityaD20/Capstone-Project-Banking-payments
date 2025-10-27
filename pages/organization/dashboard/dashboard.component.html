@@ -1,0 +1,143 @@
+<div class="container-fluid pt-4">
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border"></div>
+    <p class="mt-2">Loading Dashboard...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <!-- Main container now subscribes to the organization$ observable -->
+  <div *ngIf="organization$ | async as organization; else loading">
+    <!-- We use ngSwitch to show different views based on the organization's status -->
+    <div [ngSwitch]="organization.status">
+      <!-- Case 1: WAITING_FOR_DOCUMENTS -->
+      <div *ngSwitchCase="'WAITING_FOR_DOCUMENTS'">
+        <div class="alert alert-info">
+          <h4 class="alert-heading">Welcome, {{ organization.name }}!</h4>
+          <p>
+            Your initial registration has been approved. To gain full access to the platform, please
+            upload your verification documents.
+          </p>
+        </div>
+        <app-doc-uploader (uploadSuccess)="refreshOrgDetails()"></app-doc-uploader>
+      </div>
+
+      <!-- Case 2: PENDING_FINAL_APPROVAL -->
+      <div *ngSwitchCase="'PENDING_FINAL_APPROVAL'">
+        <div class="alert alert-warning">
+          <h4 class="alert-heading">Documents Under Review</h4>
+          <p>
+            Thank you for submitting your documents. They are now pending final review by the bank
+            admin. We will notify you once the process is complete. No further action is required
+            from you at this time.
+          </p>
+        </div>
+      </div>
+
+      <!-- Case 3: REJECTED (after document submission) -->
+      <div *ngSwitchCase="'REJECTED'">
+        <div class="alert alert-danger">
+          <h4 class="alert-heading">Action Required: Your Submission Was Rejected</h4>
+          <p>
+            Please review the reason provided by the administrator below, make the necessary
+            corrections, and re-upload your documents.
+          </p>
+
+          <hr />
+          <p class="mb-0">
+            <strong>Reason for Rejection:</strong>
+            <em class="d-block mt-1">{{
+              organization.rejectionReason || 'No specific reason was provided.'
+            }}</em>
+          </p>
+        </div>
+        <app-doc-uploader (uploadSuccess)="refreshOrgDetails()"></app-doc-uploader>
+      </div>
+
+      <!-- Case 4: Fully ACTIVE Dashboard with Summary Cards -->
+      <div *ngSwitchCase="'ACTIVE'">
+        <h3 class="mb-4">Dashboard - {{ organization.name }}</h3>
+        <!-- Summary Cards Row (now using async pipe for values) -->
+        <div class="row mb-4">
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                      Account Balance
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                      {{ organization.balance | currency : 'INR' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                      Active Employees
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                      {{ activeEmployeeCount$ | async }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                      Registered Vendors
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                      {{ vendorCount$ | async }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                      Pending Payments
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                      {{ pendingPaymentCount$ | async }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-secondary">
+          Main dashboard content area. Future enhancements like charts and recent activity can be
+          added here.
+        </div>
+      </div>
+
+      <!-- Default case for any other status -->
+      <div *ngSwitchDefault>
+        <div class="alert alert-secondary">
+          Your account status is currently: <strong>{{ organization.status }}</strong
+          >. If you have any questions, please contact support.
+        </div>
+      </div>
+    </div>
+  </div>
+  <ng-template #loading></ng-template>
+</div>

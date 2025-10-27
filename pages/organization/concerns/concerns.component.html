@@ -1,0 +1,106 @@
+<div class="container-fluid pt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Manage Employee Concerns</h3>
+    <div class="d-flex align-items-center gap-3">
+      <div>
+        <label for="statusFilter" class="form-label-sm me-2">Filter by Status:</label>
+        <select id="statusFilter" class="form-select form-select-sm" [(ngModel)]="filterStatus" (change)="onFilterChange()">
+          <option value="">All</option>
+          <option value="OPEN">Open</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="RESOLVED">Resolved</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" (click)="loadConcerns()">Refresh</button>
+    </div>
+  </div>
+  <hr>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div class="card">
+    <div class="card-body">
+      <div *ngIf="!isLoading">
+        <div *ngIf="(concerns$ | async) as concerns; else noConcerns">
+          <div *ngIf="concerns.length > 0; else noConcerns" class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th><th>Employee</th><th>Description</th><th>Status</th><th>Submitted On</th><th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let concern of concerns">
+                  <td>#{{ concern.id }}</td>
+                  <td>{{ concern.employeeName }}</td>
+                  <td class="description-cell">{{ concern.description }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'text-bg-primary': concern.status === 'OPEN', 'text-bg-info': concern.status === 'IN_PROGRESS',
+                      'text-bg-success': concern.status === 'RESOLVED', 'text-bg-secondary': concern.status === 'CLOSED'
+                    }">{{ concern.status | titlecase }}</span>
+                  </td>
+                  <td>{{ concern.createdAt | date:'medium' }}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary" (click)="openDetailModal(concern)">View Details</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <ng-template #noConcerns><p class="text-muted p-3">No concerns match the current filter.</p></ng-template>
+      </div>
+      <div *ngIf="isLoading">
+        <p class="text-muted p-3">Loading concerns...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Concern Detail Modal (This part is correct and remains unchanged) -->
+<div class="modal fade" #concernDetailModal tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content" *ngIf="selectedConcern">
+      <div class="modal-header">
+        <h5 class="modal-title">Concern #{{ selectedConcern.id }} - from {{ selectedConcern.employeeName }}</h5>
+        <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
+      </div>
+      <div class="modal-body">
+        <h6>Description</h6>
+        <p style="white-space: pre-wrap;">{{ selectedConcern.description }}</p>
+        <hr>
+        <h6>Attachments</h6>
+        <div *ngIf="isLoadingAttachments">Loading attachments...</div>
+        <div *ngIf="attachments$ | async as attachments">
+            <div *ngIf="attachments.length > 0" class="list-group">
+                <a *ngFor="let doc of attachments" [href]="doc.url" target="_blank" class="list-group-item list-group-item-action">{{ doc.type || 'View Attachment' }}</a>
+            </div>
+            <p *ngIf="attachments.length === 0" class="text-muted">No attachments were provided.</p>
+        </div>
+        <hr>
+        <h6>Update Status</h6>
+        <div class="btn-group" role="group">
+          <button class="btn btn-sm" (click)="updateStatus('OPEN')" [ngClass]="selectedConcern.status === 'OPEN' ? 'btn-primary' : 'btn-outline-primary'">Open</button>
+          <button class="btn btn-sm" (click)="updateStatus('IN_PROGRESS')" [ngClass]="selectedConcern.status === 'IN_PROGRESS' ? 'btn-info' : 'btn-outline-info'">In Progress</button>
+          <button class="btn btn-sm" (click)="updateStatus('RESOLVED')" [ngClass]="selectedConcern.status === 'RESOLVED' ? 'btn-success' : 'btn-outline-success'">Resolved</button>
+          <button class="btn btn-sm" (click)="updateStatus('CLOSED')" [ngClass]="selectedConcern.status === 'CLOSED' ? 'btn-secondary' : 'btn-outline-secondary'">Closed</button>
+        </div>
+        <hr>
+        <h6>Add a Response</h6>
+        <form [formGroup]="responseForm" (ngSubmit)="submitResponse()">
+          <div *ngIf="responseError" class="alert alert-danger">{{ responseError }}</div>
+          <textarea class="form-control" formControlName="responseText" rows="3" placeholder="Type your response to the employee..."></textarea>
+          <button class="btn btn-primary mt-2" [disabled]="isSubmittingResponse || responseForm.invalid">
+            <span *ngIf="isSubmittingResponse" class="spinner-border spinner-border-sm me-2"></span>
+            Submit Response
+          </button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

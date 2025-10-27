@@ -1,0 +1,78 @@
+<div class="container-fluid pt-4">
+
+  <!-- Use ngSwitch to control the entire view based on the viewState -->
+  <div [ngSwitch]="viewState">
+
+    <!-- 1. LOADING STATE -->
+    <div *ngSwitchCase="'loading'" class="text-center py-5">
+      <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+      <p class="mt-2">Loading your dashboard...</p>
+    </div>
+
+    <!-- 2. PASSWORD CHANGE STATE (MODAL) -->
+    <div *ngSwitchCase="'passwordChange'">
+      <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <app-change-password-form (success)="onPasswordChanged()"></app-change-password-form>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show"></div>
+    </div>
+
+    <!-- 3. MAIN DASHBOARD STATE -->
+    <div *ngSwitchCase="'dashboard'">
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+      <ng-container *ngIf="(employeeDetails$ | async) as employee; else loadingProfile">
+        <div [ngSwitch]="employee.status">
+
+          <div *ngSwitchCase="'PENDING_DOCUMENTS'">
+            <div *ngIf="employee.rejectionReason" class="alert alert-danger">
+              <h4 class="alert-heading">Action Required: Your Documents Were Rejected</h4>
+              <p>Please review the reason provided by your organization, make the necessary corrections, and re-upload your documents.</p>
+              <hr>
+              <p class="mb-0">
+                <strong>Reason for Rejection:</strong>
+                <em class="d-block mt-1">{{ employee.rejectionReason }}</em>
+              </p>
+            </div>
+            <div *ngIf="!employee.rejectionReason" class="alert alert-info">
+              <h4 class="alert-heading">Welcome, {{ employee.firstName }}!</h4>
+              <p>Your account is ready. Please complete your onboarding by uploading the required documents.</p>
+            </div>
+            <!-- Pass the new event handler to the uploader -->
+            <app-employee-doc-uploader (uploadSuccess)="onUploadSuccess()"></app-employee-doc-uploader>
+          </div>
+
+          <div *ngSwitchCase="'PENDING_APPROVAL'">
+            <div class="alert alert-warning">
+              <h4 class="alert-heading">Documents Under Review</h4>
+              <p>Thank you for submitting your documents. They are now being reviewed by your organization. No further action is needed at this time.</p>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'ACTIVE'">
+            <h3 class="mb-4">Welcome, {{ employee.firstName }} {{ employee.lastName }}!</h3>
+            <app-payslip-list></app-payslip-list>
+          </div>
+
+          <div *ngSwitchDefault>
+            <div class="alert alert-secondary">
+              Your account status is: <strong>{{ employee.status }}</strong>. Please contact your organization for more details.
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      
+      <ng-template #loadingProfile>
+        <div class="d-flex align-items-center text-muted">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            <span>Loading your employee profile...</span>
+        </div>
+      </ng-template>
+    </div>
+
+  </div>
+</div>
