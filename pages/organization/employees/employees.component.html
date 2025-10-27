@@ -1,0 +1,89 @@
+<div class="container-fluid pt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Employee Management</h3>
+    <div><button class="btn btn-primary" (click)="openAddEmployeeModal()">Add Employee</button></div>
+  </div>
+  <hr>
+
+  <div class="card mb-4">
+    <div class="card-header">Batch Upload Employees (CSV)</div>
+    <div class="card-body">
+      <p class="card-text text-muted small">Upload a CSV file with columns: <code>firstName</code>, <code>lastName</code>, <code>email</code>, <code>dateOfBirth</code> (in yyyy-MM-dd format).</p>
+      <div *ngIf="batchUploadMessage" [ngClass]="'alert alert-' + batchUploadMessage.type">{{ batchUploadMessage.text }}</div>
+      <div class="input-group">
+        <input type="file" class="form-control" id="batchFile" accept=".csv" (change)="onFileSelected($event)">
+        <button class="btn btn-outline-secondary" type="button" (click)="onBatchUpload()" [disabled]="!selectedFile || isUploadingBatch">
+          <span *ngIf="isUploadingBatch" class="spinner-border spinner-border-sm me-2"></span>
+          {{ isUploadingBatch ? 'Uploading...' : 'Upload File' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">Action Required: Employees Pending Document Approval</div>
+    <div class="card-body">
+      <div *ngIf="(pendingApprovalEmployees$ | async) as employees; else loadingTpl">
+        <div *ngIf="employees.length > 0; else noPendingActionsTpl" class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light"><tr><th>Name</th><th>Email</th><th class="text-center">Action</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let emp of employees">
+                <td>{{ emp.firstName }} {{ emp.lastName }}</td>
+                <td>{{ emp.email }}</td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-primary" (click)="navigateToActivation(emp)">Review & Activate</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      All Employees
+      <div class="w-50">
+        <input type="text" class="form-control form-control-sm" placeholder="Search by name..." [(ngModel)]="searchTerm">
+      </div>
+    </div>
+    <div class="card-body">
+      <div *ngIf="(allOtherEmployees$ | async) as employees; else loadingTpl">
+        <div *ngIf="(employees | employeeFilter:searchTerm).length > 0; else noEmployeesTpl" class="table-responsive">
+          <table class="table table-striped table-hover align-middle">
+            <thead class="table-light"><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th class="text-center">Actions</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let emp of (employees | employeeFilter:searchTerm)">
+                <td>{{ emp.id }}</td>
+                <td>{{ emp.firstName }} {{ emp.lastName }}</td>
+                <td>{{ emp.email }}</td>
+                <td><span class="badge" [ngClass]="{ 'text-bg-success': emp.status === 'ACTIVE', 'text-bg-warning': emp.status === 'PENDING_DOCUMENTS', 'text-bg-secondary': emp.status === 'DISABLED' }">{{ emp.status | titlecase }}</span></td>
+                <td class="text-center">
+                  <a *ngIf="emp.status === 'ACTIVE'" class="btn btn-sm btn-outline-primary me-2" [routerLink]="['/organization/employees', emp.id]">Edit</a>
+                  <button *ngIf="emp.status !== 'DISABLED'" class="btn btn-sm btn-outline-danger" (click)="disableEmployee(emp)">Disable</button>
+                  <button *ngIf="emp.status === 'DISABLED'" class="btn btn-sm btn-outline-success" (click)="enableEmployee(emp)">Enable</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loadingTpl><div class="p-2 text-muted">Loading...</div></ng-template>
+  <ng-template #noPendingActionsTpl><div class="p-2 text-muted">No employees are currently awaiting document approval.</div></ng-template>
+  <ng-template #noEmployeesTpl><div class="p-2 text-muted">No employees found.</div></ng-template>
+</div>
+
+<!-- "Add Employee" Modal -->
+<div class="modal fade" [class.show]="isAddEmployeeModalVisible" [style.display]="isAddEmployeeModalVisible ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <app-add-employee-form (close)="closeAddEmployeeModal()" (success)="onEmployeeAdded()"></app-add-employee-form>
+  </div></div>
+</div>
+<div *ngIf="isAddEmployeeModalVisible" class="modal-backdrop fade show"></div>

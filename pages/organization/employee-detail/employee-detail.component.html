@@ -1,0 +1,59 @@
+<div class="container-fluid pt-4">
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border"></div>
+    <p class="mt-2">Loading Employee Details...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div *ngIf="employee && !isLoading">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3>Edit Employee: {{ employee.firstName }} {{ employee.lastName }}</h3>
+      <a routerLink="/organization/employees" class="btn btn-secondary">Back to List</a>
+    </div>
+    <hr>
+
+    <div class="row g-4">
+      <!-- Left Column: Bank Details -->
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">Bank Account Details</div>
+          <div class="card-body">
+            <form [formGroup]="bankForm" (ngSubmit)="onBankUpdate()">
+              <div class="mb-3"><label class="form-label">Account Number</label><input type="text" class="form-control" formControlName="accountNumber"></div>
+              <div class="mb-3"><label class="form-label">IFSC Code</label><input type="text" class="form-control" formControlName="ifscCode"></div>
+              <div class="mb-3"><label class="form-label">Bank Name</label><input type="text" class="form-control" formControlName="bankName"></div>
+              <button type="submit" class="btn btn-primary" [disabled]="isSubmittingBank || bankForm.invalid">
+                <span *ngIf="isSubmittingBank" class="spinner-border spinner-border-sm me-2"></span>
+                Save Bank Details
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Salary Structure -->
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">Salary Structure</div>
+          <div class="card-body">
+            <form [formGroup]="salaryForm" (ngSubmit)="onSalaryUpdate()">
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Basic Salary</label><input type="number" class="form-control" formControlName="basicSalary"></div>
+                <div class="col-md-6"><label class="form-label">HRA</label><input type="number" class="form-control" formControlName="hra" [readonly]="true"></div>
+                <div class="col-md-6"><label class="form-label">DA</label><input type="number" class="form-control" formControlName="da" [readonly]="true"></div>
+                <div class="col-md-6"><label class="form-label">PF</label><input type="number" class="form-control" formControlName="pf" [readonly]="true"></div>
+                <div class="col-12"><label class="form-label">Other Allowances</label><input type="number" class="form-control" formControlName="otherAllowances" [readonly]="true"></div>
+              </div>
+              <button type="submit" class="btn btn-primary mt-3" [disabled]="isSubmittingSalary || salaryForm.invalid">
+                <span *ngIf="isSubmittingSalary" class="spinner-border spinner-border-sm me-2"></span>
+                Save Salary Structure
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
